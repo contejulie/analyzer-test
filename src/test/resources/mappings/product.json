@@ -10,19 +10,7 @@
             "tokenizer": "standard",
             "filter": [
               "lowercase",
-              "french_elision",
-              "stopwords_french",
-              "french_stemmer",
-              "synonym_filter"
-            ]
-          },
-          "product_id": {
-            "char_filter": [
-              "remove_letter"
-            ],
-            "tokenizer": "standard",
-            "filter": [
-              "lowercase"
+              "french_elision"
             ]
           },
           "without_filter": {
@@ -35,19 +23,9 @@
             "pattern": "(\\D+)([0-9\\s\\.,]*)",
             "replacement": "$1",
             "flags": "CASE_INSENSITIVE"
-          },
-          "remove_letter": {
-            "type": "pattern_replace",
-            "pattern": "(\\D+)([0-9\\s\\.,]*)",
-            "replacement": "$2",
-            "flags": "CASE_INSENSITIVE"
           }
         },
         "filter": {
-          "synonym_filter": {
-            "type": "synonym",
-            "synonyms_path": "synonymes.txt"
-          },
           "french_elision": {
             "type": "elision",
             "articles_case": true,
@@ -55,14 +33,6 @@
               "l",
               "d"
             ]
-          },
-          "french_stemmer" : {
-            "type" : "stemmer",
-            "name" : "light_french"
-          },
-          "stopwords_french": {
-            "type": "stop",
-            "stopwords": "_french_"
           }
         }
       }
