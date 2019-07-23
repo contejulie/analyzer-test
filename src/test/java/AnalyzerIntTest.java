@@ -8,6 +8,7 @@ import org.apache.http.util.EntityUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -45,21 +46,22 @@ public class AnalyzerIntTest {
     }
 
     private void analyzerTestWithInput(String textToAnalyse, String[] expectedTokens, String analyzer) {
+        ObjectMapper mapper = new ObjectMapper();
         try {
             try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
                 HttpPost postAction = new HttpPost(TestUtils.getBaseUrlElasticsearch() + "/_analyze");
-                String body = "{\n" +
-                        "  \"analyzer\": \"" + analyzer + "\",\n" +
-                        "  \"text\": \"" + textToAnalyse + "\"\n" +
-                        "}";
-                postAction.setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
+
+                ObjectNode body = mapper.createObjectNode();
+                body.put("analyzer", analyzer);
+                body.put("text", textToAnalyse);
+
+                postAction.setEntity(new StringEntity(body.toString(), ContentType.APPLICATION_JSON));
                 ResponseHandler<String[]> responseHandler = response -> {
                     int status = response.getStatusLine().getStatusCode();
                     if (status < 200 || status >= 300) {
                         throw new RuntimeException("Unexpected response status: " + status);
                     }
                     String responseBody = EntityUtils.toString(response.getEntity());
-                    ObjectMapper mapper = new ObjectMapper();
                     Map map = mapper.readValue(responseBody, Map.class);
                     List<Map> tokensMap = (List) (map.get("tokens"));
                     return tokensMap.stream().map(t -> t.get("token")).toArray(String[]::new);
