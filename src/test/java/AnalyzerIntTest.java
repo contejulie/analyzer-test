@@ -47,29 +47,27 @@ public class AnalyzerIntTest {
 
     private void analyzerTestWithInput(String textToAnalyse, String[] expectedTokens, String analyzer) {
         ObjectMapper mapper = new ObjectMapper();
-        try {
-            try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-                HttpPost postAction = new HttpPost(TestUtils.getBaseUrlElasticsearch() + "/_analyze");
+        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
+            HttpPost postAction = new HttpPost(TestUtils.getBaseUrlElasticsearch() + "/_analyze");
 
-                ObjectNode body = mapper.createObjectNode();
-                body.put("analyzer", analyzer);
-                body.put("text", textToAnalyse);
+            ObjectNode body = mapper.createObjectNode();
+            body.put("analyzer", analyzer);
+            body.put("text", textToAnalyse);
 
-                postAction.setEntity(new StringEntity(body.toString(), ContentType.APPLICATION_JSON));
-                ResponseHandler<String[]> responseHandler = response -> {
-                    int status = response.getStatusLine().getStatusCode();
-                    if (status < 200 || status >= 300) {
-                        throw new RuntimeException("Unexpected response status: " + status);
-                    }
-                    String responseBody = EntityUtils.toString(response.getEntity());
-                    Map map = mapper.readValue(responseBody, Map.class);
-                    List<Map> tokensMap = (List) (map.get("tokens"));
-                    return tokensMap.stream().map(t -> t.get("token")).toArray(String[]::new);
-                };
-                String[] tokens = httpclient.execute(postAction, responseHandler);
+            postAction.setEntity(new StringEntity(body.toString(), ContentType.APPLICATION_JSON));
+            ResponseHandler<String[]> responseHandler = response -> {
+                int status = response.getStatusLine().getStatusCode();
+                if (status < 200 || status >= 300) {
+                    throw new RuntimeException("Unexpected response status: " + status);
+                }
+                String responseBody = EntityUtils.toString(response.getEntity());
+                Map map = mapper.readValue(responseBody, Map.class);
+                List<Map> tokensMap = (List) (map.get("tokens"));
+                return tokensMap.stream().map(t -> t.get("token")).toArray(String[]::new);
+            };
+            String[] tokens = httpclient.execute(postAction, responseHandler);
 
-                assertThat(tokens).containsExactlyInAnyOrder(expectedTokens);
-            }
+            assertThat(tokens).containsExactlyInAnyOrder(expectedTokens);
         } catch (IOException e) {
             e.printStackTrace();
         }
